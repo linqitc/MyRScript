@@ -805,7 +805,7 @@
     ggvenn(a, stroke_size = 0, set_name_color = "black", set_name_size = 11, show_outside = c("none"),
           fill_color = color, text_size = 10, auto_scale = FALSE)            # draw three-set venn
     ggsave('~/Studio/01MetaRA/F001b.jpg', width = 10, height = 12)
-    celltypeselected = intersect((df89408 %>% filter(pvalue <= 0.05))$type, (df93272 %>% filter(pvalue <= 0.05))$type)
+    celltypeselected = (intersect((df89408 %>% filter(pvalue <= 0.05))$type, (df93272 %>% filter(pvalue <= 0.05))$type))[1:5]
 #### corrplot 
     require(GSVA)
     g89408c = getGEO(filename = ("~/Studio/01MetaRA/GSE89408_series_matrix.txt.gz"), GSEMatrix = T, getGPL = F) %>% 
@@ -827,11 +827,11 @@
         merge(a89408_1, by = 'Mixture')
     cor_matrix = cor(a89408[, -1])
     p.mat = corrplot::cor.mtest	(a89408[, -1], conf.level = 0.95)$p
-    fit.p = as.data.frame(p.mat[c(1:6), c(7:9)]) %>% tibble::rownames_to_column('symbol') %>% 
+    fit.p = as.data.frame(p.mat[c(1:5), c(6:8)]) %>% tibble::rownames_to_column('symbol') %>% 
         pivot_longer(!symbol,
                names_to = "group",
                values_to = 'pvalue')
-    fit1 = as.data.frame(cor_matrix[c(1:6), c(7:9)]) %>% 
+    fit1 = as.data.frame(cor_matrix[c(1:5), c(6:8)]) %>% 
         tibble::rownames_to_column('symbol') %>% 
         pivot_longer(!symbol,
                names_to = "group",
@@ -858,11 +858,11 @@
         merge(a93272_1, by = 'Mixture')
     cor_matrix = cor(a93272[, -1])
     p.mat = corrplot::cor.mtest(a93272[, -1], conf.level = 0.95)$p
-    fit.p = as.data.frame(p.mat[c(1:6), c(7:9)]) %>% tibble::rownames_to_column('symbol') %>% 
+    fit.p = as.data.frame(p.mat[c(1:5), c(6:8)]) %>% tibble::rownames_to_column('symbol') %>% 
         pivot_longer(!symbol,
                names_to = "group",
                values_to = 'pvalue')
-    fit2 = as.data.frame(cor_matrix[c(1:6), c(7:9)]) %>% 
+    fit2 = as.data.frame(cor_matrix[c(1:5), c(6:8)]) %>% 
         tibble::rownames_to_column('symbol') %>% 
         pivot_longer(!symbol,
                names_to = "group",
@@ -1219,7 +1219,7 @@
     require(ggvenn)
     TCA = gs_th %>% filter(Pathway == 'TCA cycle')
     turquoise = read.table("~/Studio/01MetaRA/turquoise.txt", header = T)
-    a = list(DEGs = x1$symbol, turquoise_module = turquoise$gene_id, TCA_cycle = unique(TCA$symbol))
+    a = list(DEGs = x1$symbol, TCA_cycle = unique(TCA$symbol), turquoise_module = turquoise$gene_id)
     ggvenn::ggvenn(a, stroke_size = 0, set_name_color = "black", set_name_size = 6, show_outside = c("none"),
           fill_color = color, text_size = 3.6, auto_scale = FALSE)
     ggsave('~/Studio/01MetaRA/F004b.jpg', width = 6, height = 4) 
@@ -1804,19 +1804,19 @@
         select(- c('group')) 
     cor_matrix = cor(z89408_0)
     p.mat = corrplot::cor.mtest(z89408_0, conf.level = 0.95)$p
-    fit89408_1 = cor_matrix[1:11,12:18] %>% 
+    fit89408_1 = cor_matrix[1:11,12:17] %>% 
         as.data.frame() %>% 
         tibble::rownames_to_column('symbol') %>% 
         pivot_longer(!symbol, names_to = 'module', values_to = 'value') %>% 
         mutate(module = str_remove(module, "^value\\."))
-    fit89408_2 = p.mat[1:11,12:18] %>% 
+    fit89408_2 = p.mat[1:11,12:17] %>% 
         as.data.frame() %>% 
         tibble::rownames_to_column('symbol') %>% 
         pivot_longer(!symbol, names_to = 'module', values_to = 'p') %>% 
         mutate(module = str_remove(module, "^value\\."))
     fit89408_0 = cbind(fit89408_1, pvalue = fit89408_2$p)
     fit89408_0$symbol = factor(fit89408_0$symbol, levels = rev(c("COX11", "COX7B", "COX7C", "NDUFAF4", "NDUFB8", "NDUFS1", "PDHX", "PDK1", "PDK3", "SUCLA2", "SUCLG1")))
-    fit89408_0$module = factor(fit89408_0$module, levels = c("TCA cycle", "Neutrophils", "Monocytes", "NK cells resting", "T cells regulatory (Tregs)", "T cells CD4 memory activated", "T cells CD4 memory resting"))
+    fit89408_0$module = factor(fit89408_0$module, levels = c("TCA cycle", "Neutrophils", "Monocytes", "NK cells resting", "T cells regulatory (Tregs)", "T cells CD4 memory activated"))
     plot1 = fit89408_0 %>% 
         mutate(sig = ifelse(pvalue < 0.001, '***', ifelse(pvalue < 0.01, '**', ifelse(pvalue < 0.05, '*', 'ns.')))) %>% 
         mutate(text = paste0(round(value, 2), '(', sig, ')'))  %>% 
@@ -2448,7 +2448,7 @@
     colnames(fit93272) = c('value', 'pvalue')
     fit93272 = as.data.frame(fit93272[-1,]) %>% mutate(group = c('GSE93272')) %>% tibble::rownames_to_column('symbol')
     fit1 = rbind(fit89408, fit93272)
-    fit1$symbol = factor(fit1$symbol, levels = rev(c("COX11", "COX7B", "COX7C", "NDUFAF4", "NDUFB8", "NDUFS1",  "PDHX", "PDK1", "PDK3", "SUCLA2", "SUCLG1", "TCA cycle", "Neutrophils", "Monocytes", "NK cells resting", "T cells regulatory (Tregs)", "T cells CD4 memory activated", "T cells CD4 memory resting")))
+    fit1$symbol = factor(fit1$symbol, levels = rev(c("COX11", "COX7B", "COX7C", "NDUFAF4", "NDUFB8", "NDUFS1",  "PDHX", "PDK1", "PDK3", "SUCLA2", "SUCLG1", "TCA cycle", "Neutrophils", "Monocytes", "NK cells resting", "T cells regulatory (Tregs)", "T cells CD4 memory activated")))
     plot1 = fit1 %>% 
         mutate(sig = ifelse(pvalue < 0.001, '***', ifelse(pvalue < 0.01, '**', ifelse(pvalue < 0.05, '*', 'ns.')))) %>% 
         mutate(text = paste0(round(value, 2), '(', sig, ')'))  %>% 
@@ -2492,36 +2492,42 @@
     plot0 %>% insert_right(plot1, width = 6)  
     ggsave('~/Studio/01MetaRA/F007a.jpg', width = 5, height = 8.5)
 #### Analysis plot
+    key = data.frame(symbol = c("COX7C", "COX7B", "PDK1", "PDK3", "COX11", "NDUFAF4", "NDUFS1", "NDUFB8", "SUCLG1", "PDHX", "SUCLA2"))
     de93272 = read.table('~/Studio/01MetaRA/GSE93272_series.txt', header = T) %>% 
         tibble::column_to_rownames('symbol') %>% 
         select(drugnaive$geo_accession) %>% 
         t() %>% 
         as.data.frame() %>% 
         select(key$symbol) %>% 
-        mutate(lasso = COX7C * 2.7741 + COX7B * 1.1632 + PDK1 * 2.8873 + PDK3 * 1.9084 + COX11 * -1.5769 + NDUFAF4 * -0.0832 + SUCLG1 * -1.2878 + PDHX * -1.2707 + SUCLA2 * -0.1232) %>% 
-        select(-c(1:9)) %>% 
+        mutate(LASSO_model = COX7C * 2.3558 + COX7B * 1.7983 + PDK1 * 2.7770 + PDK3 * 1.8816 + COX11 * -1.1158 + NDUFAF4 * -0.0719 + NDUFB8 * -0.7949 + NDUFS1 * -0.8306 + SUCLG1 * -0.2759 + PDHX * -1.3711 + SUCLA2 * -0.0634) %>% 
+        # select(-c(1:11)) %>% 
         tibble::rownames_to_column('geo_accession') %>% 
         inner_join(drugnaive, by = 'geo_accession') %>% 
         mutate(group = ifelse(DISEASE == 'RA', 'Rheumatoid arthritis', 'Healthy control')) %>% 
         tibble::column_to_rownames('geo_accession')  %>% 
         filter(DISEASE != 'HC') %>% 
-        select(-c(2:6)) %>% 
-        select(-c('title')) %>% 
-        as.data.frame()
-    cor_matrix = cor(de93272[, -c(14,24)])
-    p.mat = corrplot::cor.mtest(de93272[, -c(14,24)], conf.level = 0.95)$p
-    cort93272 = cbind(value = as.data.frame(cor_matrix[,1]), pvalue = as.data.frame(p.mat[,1]))
-    colnames(cort93272) = c('value', 'pvalue')
-    z1 = de93272[,c(1, 14)]  %>% na.omit()
-    cor.test(z1$lasso, z1$HRAS38)
+        # select(-c(2:6)) %>% 
+        select(-c('title', 'group')) %>% 
+        as.data.frame() %>% 
+        select(-c(13:17, 27, 30, 36, 37))
+    cor_matrix = cor(de93272)
+    p.mat = corrplot::cor.mtest(de93272, conf.level = 0.95)$p
+    cort93272 = data.frame(cor_matrix[1:12, 13:30]) %>% 
+        tibble::rownames_to_column('symbol') %>% 
+        pivot_longer(!symbol, names_to = 'module', values_to = 'value') %>% 
+        mutate(module = str_remove(module, "^value\\."))
+    pv93272 = data.frame(p.mat[1:12, 13:30]) %>% 
+        tibble::rownames_to_column('symbol') %>% 
+        pivot_longer(!symbol, names_to = 'module', values_to = 'value') %>% 
+        mutate(module = str_remove(module, "^value\\."))
+    cort93272$symbol = factor(cort93272$symbol, levels = rev(c("COX11", "COX7B", "COX7C", "NDUFAF4", "NDUFB8", "NDUFS1",  "PDHX", "PDK1", "PDK3", "SUCLA2", "SUCLG1", "LASSO_model")))
     plot0 = cort93272 %>% 
-        tibble::rownames_to_column('iterm') %>% 
-        rbind(., data.frame(iterm = 'HRAS38', value = 0.3571735, pvalue = 0.01871)) %>% 
+        mutate(pvalue = pv93272$value) %>% 
         mutate(sig = ifelse(pvalue < 0.001, '***', ifelse(pvalue < 0.01, '**', ifelse(pvalue < 0.05, '*', 'ns.')))) %>% 
         mutate(text = paste0(round(value, 2), '(', sig, ')')) %>% 
-        mutate(y = 'Lasso value') %>% 
-        slice(-1) %>% 
-        ggplot(aes(x = iterm, y = y, fill = value)) +
+        # mutate(y = 'Lasso value') %>% 
+        # slice(-1) %>% 
+        ggplot(aes(x = module, y = symbol, fill = value)) +
         geom_tile(aes(fill = value)) +
         scale_fill_gradient2(low = "#D4E5F4", mid = "#FFFEEE", high = "#FBB9BA") +
         geom_text(aes(label = text), size = 2.5) + 
@@ -2536,10 +2542,10 @@
               panel.grid = element_blank(),
               axis.text.y = element_text(size = 12),
               axis.ticks = element_blank(),
-              plot.title = element_text(face = 'bold', size = 20),
+              plot.title = element_text(face = 'bold', size = 16),
               axis.text.x = element_text(size = 12, angle = 45, vjust = 1, hjust = 1),
               axis.title = element_text(face = 'bold', size = 0))
-    ggsave('~/Studio/01MetaRA/F007b.jpg', width = 11.5, height = 3)
+    ggsave('~/Studio/01MetaRA/F007b.jpg', width = 11.5, height = 6)
 #### Drug response
     require(GEOquery)
     g93272c = getGEO(filename = ("~/Studio/01MetaRA/GSE93272_series_matrix.txt.gz"), GSEMatrix = T, getGPL = F) %>% 
@@ -3497,6 +3503,14 @@
     head(Binvignat@active.ident)
     key = data.frame(symbol = factor(c("COX7C", "COX7B", "PDK1", "PDK3", "COX11", "NDUFAF4", "NDUFB8", "NDUFS1", "SUCLG1", "PDHX", "SUCLA2"), levels = c("COX7C", "COX7B", "PDK1", "PDK3", "COX11", "NDUFAF4", "NDUFB8", "NDUFS1", "SUCLG1", "PDHX", "SUCLA2")))
     z1 <- as.data.frame(Binvignat@assays$RNA@data)[rownames(Binvignat@assays$RNA@data) %in% key$symbol, ]
+    z2 = as.data.frame(t(z1)) %>% select('COX7C') %>% cbind(disease = Binvignat@meta.data$disease, labels = Binvignat@meta.data$filtered_celltypes) %>% 
+        group_by(labels, disease) %>%
+        summarise(mean_COX7C = mean(COX7C, na.rm = TRUE),
+                  sd_COX7C = sd(COX7C, na.rm = TRUE),
+                  n_cells = n(),
+                  se_COX7C = sd_COX7C / sqrt(n_cells),
+                  .groups = "drop") %>% 
+        as.data.frame()
     plotb2 = as.data.frame(Binvignat@reductions$umap@cell.embeddings) %>% 
         cbind(COX7C = as.data.frame(t(z1)) %>% select('COX7C')) %>% 
         ggplot(aes(x = UMAP_1, y = UMAP_2, color = COX7C)) +
@@ -3639,7 +3653,7 @@
               plot.title = element_text(face = 'bold', size = 16),
               axis.text.x = element_text(size = 12, angle = 45, vjust = 1, hjust = 1),
               axis.title = element_text(face = 'bold', size = 0))
-    ggsave("~/Studio/01MetaRA/F013f.jpg", width = 3, height = 2.8)
+    ggsave("~/Studio/01MetaRA/F013f.jpg", width = 3, height = 2.75)
 #### GSE93776
     require(GEOquery)
     g93776c = getGEO(filename = ("~/Studio/01MetaRA/GSE93776_series_matrix.txt.gz"), GSEMatrix = T, getGPL = F) %>% 
